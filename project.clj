@@ -1,5 +1,8 @@
-(defproject clj-wiremock "0.1.0-SNAPSHOT"
+(defproject clj-wiremock "0.0.1"
   :description "Clojure bindings for WireMock"
+  :url "https://github.com/kelveden/clj-wiremock"
+  :license {:name "Eclipse Public License - v 1.0"
+            :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[cheshire "5.8.0"]
                  [clj-http "3.7.0"]
                  [com.github.tomakehurst/wiremock "2.8.0"]
