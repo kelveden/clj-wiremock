@@ -60,23 +60,32 @@ it might be best to manipulate the wiremock server directly. Below is a
 rather contrived test to illustrate this.
 
 Note that because we're calling `server/stub!` directly the stubs will not get
-cleared down automatically after our test has finished - i.e. if you're not
+cleared down automatically - i.e. if you're not
 using `with-stubs` then you must handle clearing down stubs manually. (Of course,
-in the example below all this is a moot point as the server is being shut down at
-the end of our test anyway.)
+in the example below all this is a moot point as the server is being shut down in the `finally`
+block anyway.)
 
 ```clj
-(deftest can-ping
-  (let [wiremock (server/init-wiremock {:port wiremock-port})]
-    (try
-      (server/start! wiremock)
-      (server/stub! wiremock {:request  {:method :GET :url "/ping"}
-                              :response {:status 200 :body "pong"}})
-
-      (let [{:keys [body]} (http/get (server/url wiremock "/ping"))]
-        (is (= "pong" body)))
-
-      (finally (server/stop! wiremock)))))
+(let [wiremock (server/init-wiremock {:port wiremock-port})]
+  (try
+    (server/start! wiremock)
+    ...
+    (finally (server/stop! wiremock))))
 ```
 
 See the [full code](test/clj_wiremock/test/examples/manually.clj).
+
+### Via Java interop
+Sometimes the helper functions provided aren't enough and you need to get your hands
+dirty with the underlying Java WireMockServer.
+
+```clj
+(let [wiremock (server/init-wiremock {:port wiremock-port})
+      wmk-java (.wmk-java wiremock)]
+    (try
+      (.start wmk-java)
+      ...
+      (finally (.stop wmk-java))))
+```
+
+See the [full code](test/clj_wiremock/test/examples/with_java_interop.clj).
