@@ -11,7 +11,7 @@
     (wmk/with-wiremock
       {:port port}
 
-      (wmk/stub stub)
+      (wmk/stub! stub)
 
       (let [{:keys [status body]} (http/get (ping-url port))]
         (is (= "pong" body))
@@ -22,11 +22,11 @@
 (deftest can-wrap-function-in-wiremock-startup-teardown
   (let [port (get-free-port)
         stub (ping-stub port)
-        response ((wmk/with-wiremock-fn
-                    {:port port}
-                    (fn []
-                      (wmk/stub stub)
-                      (http/get (ping-url port)))))]
+        response (wmk/wiremock-fixture
+                   {:port port}
+                   (fn []
+                     (wmk/stub! stub)
+                     (http/get (ping-url port))))]
     (is (= "pong" (:body response)))
     (is (= 200 (:status response)))))
 
@@ -53,7 +53,7 @@
     (wmk/with-wiremock
       {:port port}
 
-      (wmk/stub stub)
+      (wmk/stub! stub)
 
       (is (= 200 (:status (http/get (ping-url port)))))
       (is (= 200 (:status (http/get (ping-url port)))))

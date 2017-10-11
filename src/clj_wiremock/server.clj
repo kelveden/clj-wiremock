@@ -2,42 +2,44 @@
   (:require [cheshire.core :as json]
             [clj-http.client :as http]
             [clojure.tools.logging :as log])
-  (:import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-           com.github.tomakehurst.wiremock.WireMockServer))
+  (:import com.github.tomakehurst.wiremock.core.WireMockConfiguration))
 
-(def ^:private wiremock-server (atom nil))
+(defprotocol Wiremocked
+  (start! [_])
+  (stop! [_])
+  (clear! [_])
+  (url [_ path])
+  (admin-url [_ path])
+  (stub! [_ stub-content]))
 
-(defn- wiremock-url
-  [path]
-  (str "http://localhost:" (.port @wiremock-server) path))
+(defrecord WireMockServer [^com.github.tomakehurst.wiremock.WireMockServer wmk-java]
+  Wiremocked
+  (start! [_]
+    (.start wmk-java)
+    (log/info (str "Wiremock listening on port " (.port wmk-java))))
 
-(defn- wiremock-admin-url
-  [path]
-  (wiremock-url (str "/__admin" path)))
+  (stop! [_]
+    (.stop wmk-java)
+    (log/info (str "Wiremock stopped.")))
 
-(defn start-wiremock!
-  "Starts wiremock listening on the specified port."
+  (clear! [_]
+    (.resetAll wmk-java)
+    (log/info (str "Wiremock reset")))
+
+  (url [_ path]
+    (str "http://localhost:" (.port wmk-java) path))
+
+  (admin-url [_ path]
+    (url _ (str "/__admin" path)))
+
+  (stub! [_ stub-content]
+    (http/post (admin-url _ "/mappings/new")
+               {:body (json/generate-string stub-content)})))
+
+(defn init-wiremock
+  "Intialises a new WireMock server ready for starting on the specified port."
   [{:keys [port]}]
   (let [config (doto (new WireMockConfiguration)
                  (.port (int port)))
-        server (new WireMockServer config)]
-    (.start server)
-    (reset! wiremock-server server))
-  (log/info (str "Started Wiremock on port " port)))
-
-(defn stop-wiremock!
-  "Stops the wiremock server."
-  []
-  (when @wiremock-server
-    (.stop @wiremock-server)
-    (log/info (str "Wiremock stopped."))))
-
-(defn reset-wiremock!
-  "Clears down all stubs across the wiremock server."
-  []
-  (.resetAll @wiremock-server)
-  (log/info (str "Wiremock reset")))
-
-(defn stub [stub-content]
-  (http/post (wiremock-admin-url "/mappings/new")
-             {:body (json/generate-string stub-content)}))
+        wmk-java (new com.github.tomakehurst.wiremock.WireMockServer config)]
+    (->WireMockServer wmk-java)))

@@ -1,30 +1,41 @@
 (ns clj-wiremock.core
   (:require [clj-wiremock.server :as server]))
 
-(defn with-wiremock-fn
+(def ^:dynamic *wiremock*)
+
+(defn wiremock-fixture
   [config f]
-  (fn []
+  (binding [*wiremock* (server/init-wiremock config)]
+    (server/start! *wiremock*)
     (try
-      (server/start-wiremock! config)
       (f)
-      (finally (server/stop-wiremock!)))))
+      (finally (server/stop! *wiremock*)))))
 
 (defmacro with-wiremock
   [config & body]
-  `(try
-     (server/start-wiremock! ~config)
-     ~@body
-     (finally
-       (server/stop-wiremock!))))
+  `(binding [*wiremock* (server/init-wiremock ~config)]
+     (server/start! *wiremock*)
+     (try
+       ~@body
+       (finally (server/stop! *wiremock*)))))
 
 (defmacro with-stubs
   [stubs & body]
   `(try
      (doseq [stub# ~stubs]
-       (server/stub stub#))
+       (server/stub! *wiremock* stub#))
      ~@body
      (finally
-       (server/reset-wiremock!))))
+       (server/clear! *wiremock*))))
 
-(def stub server/stub)
-(def reset-wiremock! server/reset-wiremock!)
+(defn stub!
+  [stub-content]
+  (server/stub! *wiremock* stub-content))
+
+(defn reset-wiremock!
+  []
+  (server/clear! *wiremock*))
+
+(defn url
+  [path]
+  (server/url *wiremock* path))
