@@ -1,6 +1,7 @@
 (ns clj-wiremock.test.examples.as-fixture
   (:require [clj-http.client :as http]
             [clj-wiremock.core :as wmk]
+            [clj-wiremock.sugar.stub :refer [->stub]]
             [clojure.test :refer :all])
   (:import (java.net ConnectException ServerSocket)))
 
@@ -14,9 +15,18 @@
 
 (deftest can-ping
   (wmk/with-stubs
-    [{:request  {:method :GET :url "/ping"}
-      :response {:status 200 :body "pong"}}]
+    [(->stub {:req [:GET "/ping"]
+              :res [200 {:body "pong"}]})]
 
     (let [{:keys [status body]} (http/get (wmk/url "/ping"))]
       (is (= "pong" body))
+      (is (= 200 status)))))
+
+(deftest can-dung
+  (wmk/with-stubs
+    [(->stub {:req [:GET "/ping"]
+              :res [200 {:body "dung"}]})]
+
+    (let [{:keys [status body]} (http/get (wmk/url "/ping"))]
+      (is (= "dung" body))
       (is (= 200 status)))))
