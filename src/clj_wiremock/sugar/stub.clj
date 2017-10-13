@@ -1,5 +1,6 @@
 (ns clj-wiremock.sugar.stub
-  (:require [cheshire.core :as json]))
+  (:require [cheshire.core :as json]
+            [clojure.spec.alpha :as s]))
 
 (defn- coerce-body
   [{:keys [body] :as req} as]
@@ -45,7 +46,20 @@
       (coerce-body as)
       (strip-nils)))
 
+(s/def ::headers map?)
+(s/def ::body some?)
+(s/def ::method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD})
+(s/def ::request-options (s/keys :opt-un [::headers ::body]))
+(s/def ::req (s/cat :method ::method :body string? :opts (s/? ::request-options)))
+
+(s/def ::response-options (s/keys :opt-un [::headers ::body]))
+(s/def ::res (s/cat :status integer? :opts (s/? ::response-options)))
+
+(s/def ::stub
+  (s/keys :req-un [::req ::res]))
+
 (defn ->stub
-  [{:keys [req res]}]
+  [{:keys [req res] :as stub}]
+  {:pre [(s/assert ::stub stub)]}
   {:request  (build-request req)
    :response (build-response res)})

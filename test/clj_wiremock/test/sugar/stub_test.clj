@@ -1,12 +1,16 @@
 (ns clj-wiremock.test.sugar.stub-test
   (:require [clj-wiremock.sugar.stub :refer :all]
-            [clojure.test :refer :all]))
+            [slingshot.test :refer :all]
+            [clojure.test :refer :all]
+            [clojure.spec.alpha :as s]))
 
 (def ^:private dummy-method :GET)
 (def ^:private dummy-status 204)
 (def ^:private dummy-path "/some/path")
 (def ^:private dummy-request [:GET dummy-path])
 (def ^:private dummy-response [200])
+
+(s/check-asserts true)
 
 (deftest request-includes-specified-path
   (let [{{:keys [url]} :request} (->stub {:req [dummy-method "/my/path"]
@@ -15,11 +19,6 @@
 
 (deftest request-includes-specified-method
   (let [{{:keys [method]} :request} (->stub {:req [:DELETE dummy-path]
-                                             :res dummy-response})]
-    (is (= :DELETE method))))
-
-(deftest request-method-is-upper-cased
-  (let [{{:keys [method]} :request} (->stub {:req [:delete dummy-path]
                                              :res dummy-response})]
     (is (= :DELETE method))))
 
@@ -140,3 +139,37 @@
                                                         :headers {:content-type "my/content-type"}
                                                         :as      :json}]})]
       (is (= "my/content-type" (:content-type headers))))))
+
+(deftest stub-arguments-are-validated
+  (testing "missing request causes error"
+    (is (thrown+? [::s/failure :assertion-failed]
+                  (->stub {:res dummy-response}))))
+
+  (testing "missing response causes error"
+    (is (thrown+? [::s/failure :assertion-failed]
+                  (->stub {:req dummy-request}))))
+
+  (testing "unrecognised request method causes error"
+    (is (thrown+? [::s/failure :assertion-failed]
+                  (->stub {:req [:BOLLOX dummy-path]
+                           :res dummy-response}))))
+
+  (testing "non-string request path causes error"
+    (is (thrown+? [::s/failure :assertion-failed]
+                  (->stub {:req [dummy-method 1234]
+                           :res dummy-response}))))
+
+  (testing "non-map request headers causes error"
+    (is (thrown+? [::s/failure :assertion-failed]
+                  (->stub {:req [dummy-method dummy-path {:headers "bollox"}]
+                           :res dummy-response}))))
+
+  (testing "non-numeric response status causes error"
+    (is (thrown+? [::s/failure :assertion-failed]
+                  (->stub {:req dummy-request
+                           :res ["bollox"]}))))
+
+  (testing "non-map response headers causes error"
+    (is (thrown+? [::s/failure :assertion-failed]
+                  (->stub {:req dummy-request
+                           :res [200 {:headers "bollox"}]})))))
