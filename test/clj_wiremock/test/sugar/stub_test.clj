@@ -10,8 +10,6 @@
 (def ^:private dummy-request [:GET dummy-path])
 (def ^:private dummy-response [200])
 
-(s/check-asserts true)
-
 (deftest request-includes-specified-path
   (let [{{:keys [url]} :request} (->stub {:req [dummy-method "/my/path"]
                                           :res dummy-response})]

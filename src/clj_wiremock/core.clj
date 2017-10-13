@@ -23,14 +23,14 @@
   [stubs & body]
   `(try
      (doseq [stub# ~stubs]
-       (server/stub! *wiremock* stub#))
+       (server/register-stub! *wiremock* stub#))
      ~@body
      (finally
        (server/clear! *wiremock*))))
 
 (defn stub!
   [stub-content]
-  (server/stub! *wiremock* stub-content))
+  (server/register-stub! *wiremock* stub-content))
 
 (defn reset-wiremock!
   []

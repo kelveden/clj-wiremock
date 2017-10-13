@@ -10,8 +10,8 @@
   (let [wiremock (server/init-wiremock {:port wiremock-port})]
     (try
       (server/start! wiremock)
-      (server/stub! wiremock {:request  {:method :GET :url "/ping"}
-                              :response {:status 200 :body "pong"}})
+      (server/register-stub! wiremock {:request {:method :GET :url "/ping"}
+                              :response         {:status 200 :body "pong"}})
 
       (let [{:keys [status body]} (http/get (server/url wiremock "/ping"))]
         (is (= "pong" body))

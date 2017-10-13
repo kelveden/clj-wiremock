@@ -11,7 +11,7 @@
         wiremock (server/init-wiremock {:port port})]
     (try
       (server/start! wiremock)
-      (server/stub! wiremock stub)
+      (server/register-stub! wiremock stub)
 
       (let [{:keys [status body]} (http/get (ping-url port))]
         (is (= "pong" body))

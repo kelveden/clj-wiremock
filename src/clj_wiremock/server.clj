@@ -10,7 +10,7 @@
   (clear! [_])
   (url [_ path])
   (admin-url [_ path])
-  (stub! [_ stub-content]))
+  (register-stub! [_ stub-content]))
 
 (defrecord WireMockServer [^com.github.tomakehurst.wiremock.WireMockServer wmk-java]
   Wiremocked
@@ -32,7 +32,7 @@
   (admin-url [_ path]
     (url _ (str "/__admin" path)))
 
-  (stub! [_ stub-content]
+  (register-stub! [_ stub-content]
     (http/post (admin-url _ "/mappings/new")
                {:body (json/generate-string stub-content)})))
 
