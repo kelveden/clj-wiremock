@@ -24,9 +24,9 @@
   [m]
   (into {} (filter (comp not nil? second)) m))
 
-(defn request
+(defn- build-request
   "Syntactic sugar for building a wiremock stub request map"
-  [method path & [{:keys [body as headers]}]]
+  [[method path {:keys [body as headers]}]]
   (-> {:method  (keyword (clojure.string/upper-case (name method)))
        :url     path
        :headers headers
@@ -35,9 +35,9 @@
       (coerce-body as)
       (strip-nils)))
 
-(defn response
+(defn- build-response
   "Syntactic sugar for building a wiremock stub response map"
-  [status & [{:keys [body as headers]}]]
+  [[status & [{:keys [body as headers]}]]]
   (-> {:status  status
        :headers headers
        :body    body}
@@ -45,6 +45,7 @@
       (coerce-body as)
       (strip-nils)))
 
-(defn stub
-  [req resp]
-  {:request req :response resp})
+(defn ->stub
+  [{:keys [req res]}]
+  {:request  (build-request req)
+   :response (build-response res)})

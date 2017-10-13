@@ -12,8 +12,8 @@
     {:port wiremock-port}
 
     (wmk/with-stubs
-      [(stub (request :GET "/ping")
-             (response 200 {:body "pong"}))]
+      [(->stub {:req [:GET "/ping"]
+                :res [200 {:body "pong"}]})]
 
       (let [{:keys [status body]} (http/get (wmk/url "/ping"))]
         (is (= "pong" body))
