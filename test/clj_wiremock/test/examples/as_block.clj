@@ -1,7 +1,7 @@
 (ns clj-wiremock.test.examples.as-block
   (:require [clj-http.client :as http]
             [clj-wiremock.core :as wmk]
-            [clj-wiremock.sugar.stub :refer :all]
+            [clj-wiremock.stub :refer :all]
             [clojure.test :refer :all])
   (:import (java.net ConnectException ServerSocket)))
 

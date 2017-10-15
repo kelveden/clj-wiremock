@@ -13,5 +13,5 @@
   :jvm-opts ["-Dclojure.spec.check-asserts=true"]
   :profiles {:dev {:dependencies [[org.slf4j/slf4j-simple "1.7.25"]
                                   [slingshot "0.12.2"]]
-                   :source-paths ["dev/clj"]
+                   :source-paths ["dev"]
                    :repl-options {:init-ns user}}})

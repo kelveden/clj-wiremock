@@ -1,5 +1,5 @@
-(ns clj-wiremock.test.sugar.stub-test
-  (:require [clj-wiremock.sugar.stub :refer :all]
+(ns clj-wiremock.test.stub-test
+  (:require [clj-wiremock.stub :refer :all]
             [slingshot.test :refer :all]
             [clojure.test :refer :all]
             [clojure.spec.alpha :as s]))

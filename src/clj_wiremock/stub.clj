@@ -1,4 +1,4 @@
-(ns clj-wiremock.sugar.stub
+(ns clj-wiremock.stub
   (:require [cheshire.core :as json]
             [clojure.spec.alpha :as s]))
 
