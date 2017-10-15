@@ -28,7 +28,3 @@
      ~@body
      (finally
        (server/clear! *wiremock*))))
-
-(defn url
-  [path]
-  (server/url *wiremock* path))

@@ -25,7 +25,7 @@ stubs at the end of the block.)
   (wmk/with-stubs
       [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
   
-      (let [{:keys [status]} (http/get (wmk/url "/ping"))]
+      (let [{:keys [status]} (http/get (server/url *wiremock* "/ping"))]
         (is (= 200 status)))))
 ```
 
@@ -42,7 +42,7 @@ at the end of the block.
     (wmk/with-stubs
       [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
 
-      (let [{:keys [status]} (http/get (wmk/url "/ping"))]
+      (let [{:keys [status]} (http/get (server/url *wiremock* "/ping"))]
         (is (= 200 status)))))
 ```
 

@@ -5,17 +5,26 @@
             [clj-http.client :as http])
   (:import (java.net ConnectException)))
 
-(deftest can-start-and-stop-wiremock-manually
+(deftest can-start-and-stop-wiremock
+  (let [port (get-free-port)
+        wiremock (server/init-wiremock {:port port})
+        ping-url (str "http://localhost:" port "/__admin/mappings")]
+
+    (is (thrown? ConnectException (http/get ping-url)))
+
+    (server/start! wiremock)
+    (is (= 200 (:status (http/get ping-url))))
+    (server/stop! wiremock)
+
+    (is (thrown? ConnectException (http/get ping-url)))))
+
+(deftest can-build-admin-url-from-path
   (let [port (get-free-port)
         wiremock (server/init-wiremock {:port port})]
+
     (try
       (server/start! wiremock)
-      (server/register-stub! wiremock (ping-stub port))
+      (is (= (str "http://localhost:" port "/__admin/some/path")
+             (server/admin-url wiremock "/some/path")))
+      (finally (server/stop! wiremock)))))
 
-      (let [{:keys [status body]} (http/get (ping-url port))]
-        (is (= "pong" body))
-        (is (= 200 status)))
-      (finally
-        (server/stop! wiremock)))
-
-    (is (thrown? ConnectException (http/get (ping-url port))))))
