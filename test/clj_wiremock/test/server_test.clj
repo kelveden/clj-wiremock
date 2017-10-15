@@ -7,11 +7,10 @@
 
 (deftest can-start-and-stop-wiremock-manually
   (let [port (get-free-port)
-        stub (ping-stub port)
         wiremock (server/init-wiremock {:port port})]
     (try
       (server/start! wiremock)
-      (server/register-stub! wiremock stub)
+      (server/register-stub! wiremock (ping-stub port))
 
       (let [{:keys [status body]} (http/get (ping-url port))]
         (is (= "pong" body))

@@ -15,8 +15,7 @@
 
 (deftest can-ping
   (wmk/with-stubs
-    [(->stub {:req [:GET "/ping"]
-              :res [200 {:body "pong"}]})]
+    [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
 
     (let [{:keys [status body]} (http/get (wmk/url "/ping"))]
       (is (= "pong" body))
@@ -24,8 +23,7 @@
 
 (deftest can-dung
   (wmk/with-stubs
-    [(->stub {:req [:GET "/ping"]
-              :res [200 {:body "dung"}]})]
+    [{:req [:GET "/ping"] :res [200 {:body "dung"}]}]
 
     (let [{:keys [status body]} (http/get (wmk/url "/ping"))]
       (is (= "dung" body))

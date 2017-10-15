@@ -7,8 +7,8 @@
     (.getLocalPort socket)))
 
 (defn ping-stub [port]
-  {:request  {:method :GET :url "/ping"}
-   :response {:status 200 :body "pong"}})
+  {:req [:GET "/ping"]
+   :res [200 {:body "pong"}]})
 
 (defn ping-url
   [port]

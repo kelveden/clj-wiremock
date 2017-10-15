@@ -8,12 +8,9 @@
 (def ^:private wiremock-port (with-open [socket (ServerSocket. 0)]
                                (.getLocalPort socket)))
 (deftest can-ping
-  (wmk/with-wiremock
-    {:port wiremock-port}
-
+  (wmk/with-wiremock {:port wiremock-port}
     (wmk/with-stubs
-      [(->stub {:req [:GET "/ping"]
-                :res [200 {:body "pong"}]})]
+      [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
 
       (let [{:keys [status body]} (http/get (wmk/url "/ping"))]
         (is (= "pong" body))

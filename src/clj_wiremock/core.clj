@@ -1,5 +1,6 @@
 (ns clj-wiremock.core
-  (:require [clj-wiremock.server :as server]))
+  (:require [clj-wiremock.server :as server]
+            [clj-wiremock.stub :refer [->stub]]))
 
 (def ^:dynamic *wiremock*)
 
@@ -27,14 +28,6 @@
      ~@body
      (finally
        (server/clear! *wiremock*))))
-
-(defn stub!
-  [stub-content]
-  (server/register-stub! *wiremock* stub-content))
-
-(defn reset-wiremock!
-  []
-  (server/clear! *wiremock*))
 
 (defn url
   [path]

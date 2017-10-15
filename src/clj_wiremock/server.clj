@@ -1,6 +1,7 @@
 (ns clj-wiremock.server
   (:require [cheshire.core :as json]
             [clj-http.client :as http]
+            [clj-wiremock.stub :refer [->stub]]
             [clojure.tools.logging :as log])
   (:import com.github.tomakehurst.wiremock.core.WireMockConfiguration))
 
@@ -34,7 +35,7 @@
 
   (register-stub! [_ stub-content]
     (http/post (admin-url _ "/mappings/new")
-               {:body (json/generate-string stub-content)})))
+               {:body (json/generate-string (->stub stub-content))})))
 
 (defn init-wiremock
   "Intialises a new WireMock server ready for starting on the specified port."

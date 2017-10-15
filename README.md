@@ -23,11 +23,10 @@ stubs at the end of the block.)
 
 (deftest can-ping
   (wmk/with-stubs
-    [{:request  {:method :GET :url "/ping"}
-      :response {:status 200 :body "pong"}}]
-
-    (let [{:keys [body]} (http/get (wmk/url "/ping"))]
-      (is (= "pong" body)))))
+      [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
+  
+      (let [{:keys [status]} (http/get (wmk/url "/ping"))]
+        (is (= 200 status)))))
 ```
 
 See the [full code](test/clj_wiremock/test/examples/as_fixture.clj). 
@@ -39,16 +38,12 @@ code blocks in which wiremock has been fired up. Wiremock will be stopped
 at the end of the block.
 
 ```clj
-(deftest can-ping
-  (wmk/with-wiremock
-    {:port wiremock-port}
-
+(wmk/with-wiremock {:port wiremock-port}
     (wmk/with-stubs
-      [{:request  {:method :GET :url "/ping"}
-        :response {:status 200 :body "pong"}}]
+      [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
 
-      (let [{:keys [body]} (http/get (wmk/url "/ping"))]
-        (is (= "pong" body))))))
+      (let [{:keys [status]} (http/get (wmk/url "/ping"))]
+        (is (= 200 status)))))
 ```
 
 See the [full code](test/clj_wiremock/test/examples/as_block.clj). 
@@ -66,11 +61,16 @@ in the example below all this is a moot point as the server is being shut down i
 block anyway.)
 
 ```clj
-(let [wiremock (server/init-wiremock {:port wiremock-port})]
-  (try
-    (server/start! wiremock)
-    ...
-    (finally (server/stop! wiremock))))
+(deftest can-ping
+  (let [wiremock (server/init-wiremock {:port wiremock-port})]
+    (try
+      (server/start! wiremock)
+      (server/register-stub! wiremock {:req [:GET "/ping"] :res [200 {:body "pong"}]})
+
+      (let [{:keys [status]} (http/get (server/url wiremock "/ping"))]
+        (is (= 200 status)))
+
+      (finally (server/stop! wiremock)))))
 ```
 
 See the [full code](test/clj_wiremock/test/examples/manually.clj).
@@ -80,12 +80,20 @@ Sometimes the helper functions provided aren't enough and you need to get your h
 dirty with the underlying Java WireMockServer.
 
 ```clj
-(let [wiremock (server/init-wiremock {:port wiremock-port})
-      wmk-java (.wmk-java wiremock)]
+(deftest can-ping
+  (let [wiremock (server/init-wiremock {:port wiremock-port})
+        wmk-java (.wmk-java wiremock)]
     (try
       (.start wmk-java)
-      ...
-      (finally (.stop wmk-java))))
+
+      (http/post (str "http://localhost:" (.port wmk-java) "/__admin/mappings/new")
+                 {:body (json/generate-string {:request  {:method :GET :url "/ping"}
+                                               :response {:status 200 :body "pong"}})})
+
+      (let [{:keys [status]} (http/get (str "http://localhost:" (.port wmk-java) "/ping"))]
+        (is (= 200 status)))
+
+      (finally (.stop wmk-java)))))
 ```
 
 See the [full code](test/clj_wiremock/test/examples/with_java_interop.clj).
