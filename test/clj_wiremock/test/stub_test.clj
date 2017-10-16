@@ -15,6 +15,11 @@
                                           :res dummy-response})]
     (is (= "/my/path" url))))
 
+(deftest request-includes-specified-path-regex
+  (let [{{:keys [urlPattern]} :request} (->stub {:req [dummy-method #"/my/path/.+"]
+                                          :res dummy-response})]
+    (is (= "/my/path/.+" urlPattern))))
+
 (deftest request-includes-specified-method
   (let [{{:keys [method]} :request} (->stub {:req [:DELETE dummy-path]
                                              :res dummy-response})]

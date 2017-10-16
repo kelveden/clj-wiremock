@@ -1,6 +1,7 @@
 (ns clj-wiremock.stub
   (:require [cheshire.core :as json]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s])
+  (:import (java.util.regex Pattern)))
 
 (defn- coerce-body
   [{:keys [body] :as req} as]
@@ -27,34 +28,37 @@
 
 (defn- build-request
   "Syntactic sugar for building a wiremock stub request map"
-  [[method path {:keys [body as headers] :as opts}]]
-  (-> opts
-      (dissoc :body :as :headers)
-      (merge {:method  (keyword (clojure.string/upper-case (name method)))
-              :url     path
-              :headers headers
-              :body    body})
-      (lower-case-keys-in [:headers])
-      (coerce-body as)
-      (strip-nils)))
+  [{:keys [method opts] [url-field url-value] :path}]
+  (let [{:keys [body as headers]} opts]
+    (-> opts
+        (dissoc :body :as :headers)
+        (merge {:method  (keyword (clojure.string/upper-case (name method)))
+                :headers headers
+                :body    body})
+        (assoc url-field (str url-value))
+        (lower-case-keys-in [:headers])
+        (coerce-body as)
+        (strip-nils))))
 
 (defn- build-response
   "Syntactic sugar for building a wiremock stub response map"
-  [[status & [{:keys [body as headers] :as opts}]]]
-  (-> opts
-      (dissoc :body :as :headers)
-      (merge {:status  status
-              :headers headers
-              :body    body})
-      (lower-case-keys-in [:headers])
-      (coerce-body as)
-      (strip-nils)))
+  [{:keys [status opts]}]
+  (let [{:keys [body as headers]} opts]
+    (-> opts
+        (dissoc :body :as :headers)
+        (merge {:status  status
+                :headers headers
+                :body    body})
+        (lower-case-keys-in [:headers])
+        (coerce-body as)
+        (strip-nils))))
 
 (s/def ::headers map?)
 (s/def ::body some?)
 (s/def ::method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD})
 (s/def ::request-options (s/keys :opt-un [::headers ::body]))
-(s/def ::req (s/cat :method ::method :body string? :opts (s/? ::request-options)))
+(s/def ::url (s/or :url string? :urlPattern #(= Pattern (type %))))
+(s/def ::req (s/cat :method ::method :path ::url :opts (s/? ::request-options)))
 
 (s/def ::response-options (s/keys :opt-un [::headers ::body]))
 (s/def ::res (s/cat :status integer? :opts (s/? ::response-options)))
@@ -63,9 +67,10 @@
   (s/keys :req-un [::req ::res]))
 
 (defn ->stub
-  [{:keys [req res] :as stub}]
+  [stub]
   {:pre [(s/assert ::stub stub)]}
-  (-> stub
-      (dissoc :req :res)
-      (assoc :request (build-request req)
-             :response (build-response res))))
+  (let [{:keys [req res] :as conformed} (s/conform ::stub stub)]
+    (-> conformed
+        (dissoc :req :res)
+        (assoc :request (build-request req)
+               :response (build-response res)))))
