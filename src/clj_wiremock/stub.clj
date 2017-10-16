@@ -1,6 +1,7 @@
 (ns clj-wiremock.stub
   (:require [cheshire.core :as json]
-            [clojure.spec.alpha :as s])
+            [clojure.spec.alpha :as s]
+            [clojure.string :refer [includes?]])
   (:import (java.util.regex Pattern)))
 
 (defn- coerce-body
@@ -53,13 +54,17 @@
         (coerce-body as)
         (strip-nils))))
 
+(defn- with-query? [url] (includes? url "?"))
+(defn- not-with-query? [url] (not (with-query? url)))
+(defn- pattern? [x] (= Pattern (type x)))
+
 (s/def ::headers map?)
 (s/def ::body some?)
 (s/def ::method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD})
 (s/def ::request-options (s/keys :opt-un [::headers ::body]))
-(s/def ::url (s/or :urlPattern #(= Pattern (type %))
-                   :urlPath #(and (string? %) (not (clojure.string/includes? % "?")))
-                   :url #(and (string? %) (clojure.string/includes? % "?"))))
+(s/def ::url (s/or :urlPattern pattern?
+                   :urlPath (s/and string? not-with-query?)
+                   :url (s/and string? with-query?)))
 (s/def ::req (s/cat :method ::method :path ::url :opts (s/? ::request-options)))
 
 (s/def ::response-options (s/keys :opt-un [::headers ::body]))
