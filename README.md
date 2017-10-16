@@ -11,9 +11,6 @@ Typically you'll want wiremock to fire up at the beginning of your
 test namespaces and shutdown at the end. To achieve this, `wiremock-fixture`
 is provided as your "once" test fixture.
 
-(Note that `with-stubs` automatically clears down wiremock of all
-stubs at the end of the block.)
-
 ```clj
 (defn around-all
   [f]
@@ -27,6 +24,20 @@ stubs at the end of the block.)
   
       (let [{:keys [status]} (http/get (server/url *wiremock* "/ping"))]
         (is (= 200 status)))))
+```
+
+Note that there is a subtle variation on this called `wiremock-fixture-fn` which
+wraps `wiremock-fixture` in another anonymous, parameterless function. This is useful
+if you want to thread through multiple fixtures in your "around all" function; e.g.
+
+```clj
+(defn around-all
+  [f]
+  (-> f
+  	  (wmk/wiremock-fixture-fn {:port wiremock-port})
+  	  (some-other-fixture)))
+
+(use-fixtures :once around-all)
 ```
 
 See the [full code](test/clj_wiremock/test/examples/as_fixture.clj). 

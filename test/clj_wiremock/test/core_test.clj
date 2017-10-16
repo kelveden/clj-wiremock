@@ -19,14 +19,23 @@
 
     (is (thrown? ConnectException (http/get (ping-url port))))))
 
-(deftest can-wrap-function-in-wiremock-startup-teardown
+(deftest can-wrap-function-in-wiremock-fixture
   (let [port (get-free-port)
         stub (ping-stub port)
-        response (wmk/wiremock-fixture
-                   {:port port}
-                   (fn []
-                     (server/register-stub! *wiremock* stub)
-                     (http/get (ping-url port))))]
+        test-body (fn []
+                    (server/register-stub! *wiremock* stub)
+                    (http/get (ping-url port)))
+        response (wmk/wiremock-fixture {:port port} test-body)]
+    (is (= "pong" (:body response)))
+    (is (= 200 (:status response)))))
+
+(deftest can-wrap-function-in-threadable-wiremock-fixture
+  (let [port (get-free-port)
+        stub (ping-stub port)
+        test-body (fn []
+                    (server/register-stub! *wiremock* stub)
+                    (http/get (ping-url port)))
+        response ((wmk/wiremock-fixture-fn {:port port} test-body))]
     (is (= "pong" (:body response)))
     (is (= 200 (:status response)))))
 

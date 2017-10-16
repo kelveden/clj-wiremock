@@ -12,6 +12,11 @@
       (f)
       (finally (server/stop! *wiremock*)))))
 
+(defn wiremock-fixture-fn
+  [config f]
+  (fn []
+    (wiremock-fixture config f)))
+
 (defmacro with-wiremock
   [config & body]
   `(binding [*wiremock* (server/init-wiremock ~config)]
