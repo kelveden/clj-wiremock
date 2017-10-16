@@ -11,14 +11,19 @@
 (def ^:private dummy-response [200])
 
 (deftest request-includes-specified-path
-  (let [{{:keys [url]} :request} (->stub {:req [dummy-method "/my/path"]
-                                          :res dummy-response})]
-    (is (= "/my/path" url))))
+  (let [{{:keys [urlPath]} :request} (->stub {:req [dummy-method "/my/path"]
+                                              :res dummy-response})]
+    (is (= "/my/path" urlPath))))
 
 (deftest request-includes-specified-path-regex
   (let [{{:keys [urlPattern]} :request} (->stub {:req [dummy-method #"/my/path/.+"]
-                                          :res dummy-response})]
+                                                 :res dummy-response})]
     (is (= "/my/path/.+" urlPattern))))
+
+(deftest request-includes-specified-path-with-query
+  (let [{{:keys [url]} :request} (->stub {:req [dummy-method "/my/path?a=b"]
+                                          :res dummy-response})]
+    (is (= "/my/path?a=b" url))))
 
 (deftest request-includes-specified-method
   (let [{{:keys [method]} :request} (->stub {:req [:DELETE dummy-path]

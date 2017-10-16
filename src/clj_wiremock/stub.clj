@@ -57,7 +57,9 @@
 (s/def ::body some?)
 (s/def ::method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD})
 (s/def ::request-options (s/keys :opt-un [::headers ::body]))
-(s/def ::url (s/or :url string? :urlPattern #(= Pattern (type %))))
+(s/def ::url (s/or :urlPattern #(= Pattern (type %))
+                   :urlPath #(and (string? %) (not (clojure.string/includes? % "?")))
+                   :url #(and (string? %) (clojure.string/includes? % "?"))))
 (s/def ::req (s/cat :method ::method :path ::url :opts (s/? ::request-options)))
 
 (s/def ::response-options (s/keys :opt-un [::headers ::body]))
