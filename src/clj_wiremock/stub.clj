@@ -27,21 +27,25 @@
 
 (defn- build-request
   "Syntactic sugar for building a wiremock stub request map"
-  [[method path {:keys [body as headers]}]]
-  (-> {:method  (keyword (clojure.string/upper-case (name method)))
-       :url     path
-       :headers headers
-       :body    body}
+  [[method path {:keys [body as headers] :as opts}]]
+  (-> opts
+      (dissoc :body :as :headers)
+      (merge {:method  (keyword (clojure.string/upper-case (name method)))
+              :url     path
+              :headers headers
+              :body    body})
       (lower-case-keys-in [:headers])
       (coerce-body as)
       (strip-nils)))
 
 (defn- build-response
   "Syntactic sugar for building a wiremock stub response map"
-  [[status & [{:keys [body as headers]}]]]
-  (-> {:status  status
-       :headers headers
-       :body    body}
+  [[status & [{:keys [body as headers] :as opts}]]]
+  (-> opts
+      (dissoc :body :as :headers)
+      (merge {:status  status
+              :headers headers
+              :body    body})
       (lower-case-keys-in [:headers])
       (coerce-body as)
       (strip-nils)))
@@ -61,5 +65,7 @@
 (defn ->stub
   [{:keys [req res] :as stub}]
   {:pre [(s/assert ::stub stub)]}
-  {:request  (build-request req)
-   :response (build-response res)})
+  (-> stub
+      (dissoc :req :res)
+      (assoc :request (build-request req)
+             :response (build-response res))))

@@ -171,3 +171,23 @@
     (is (thrown+? [::s/failure :assertion-failed]
                   (->stub {:req dummy-request
                            :res [200 {:headers "bollox"}]})))))
+
+(deftest unrecognised-fields-are-left-as-is
+  (testing "top-level field"
+    (let [{:keys [myfield]}
+          (->stub {:req     dummy-request
+                   :res     dummy-response
+                   :myfield "myvalue"})]
+      (is (= myfield "myvalue"))))
+
+  (testing "request field"
+    (let [{{:keys [myfield]} :request}
+          (->stub {:req (merge dummy-request {:myfield "myvalue"})
+                   :res dummy-response})]
+      (is (= myfield "myvalue"))))
+
+  (testing "response field"
+    (let [{{:keys [myfield]} :response}
+          (->stub {:req dummy-request
+                   :res (merge dummy-response {:myfield "myvalue"})})]
+      (is (= myfield "myvalue")))))

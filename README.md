@@ -108,3 +108,5 @@ dirty with the underlying Java WireMockServer.
 ```
 
 See the [full code](test/clj_wiremock/test/examples/with_java_interop.clj).
+
+## Syntactic sugar
