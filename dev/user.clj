@@ -20,8 +20,12 @@
   (server/stop! @wmk)
   (reset! wmk nil))
 
+(defn clear
+  []
+  (server/clear! @wmk))
+
 (defn stub
   "Registers the specified stub with wiremock."
   [s]
-  (server/register-stub! @wmk (->stub s))
+  (server/register-stub! @wmk s)
   "Stub created successfully")
