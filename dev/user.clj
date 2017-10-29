@@ -24,6 +24,10 @@
   []
   (server/clear! @wmk))
 
+(defn get-scenarios
+  []
+  (server/scenarios @wmk))
+
 (defn stub
   "Registers the specified stub with wiremock."
   [s]

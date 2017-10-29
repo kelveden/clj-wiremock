@@ -201,3 +201,34 @@
           (->stub {:req dummy-request
                    :res (merge dummy-response {:myfield "myvalue"})})]
       (is (= myfield "myvalue")))))
+
+(deftest scenario-metadata-is-added-to-stub
+  (let [{:keys [requiredScenarioState newScenarioState scenarioName]}
+        (->stub {:req      dummy-request
+                 :res      dummy-response
+                 :state    {:required "state1" :new "state2"}
+                 :scenario "myscenario"})]
+    (is (= "state1" requiredScenarioState))
+    (is (= "state2" newScenarioState))
+    (is (= "myscenario" scenarioName)))
+
+  (testing "default scenario is used if not specified and state included"
+    (let [{:keys [scenarioName]}
+          (->stub {:req   dummy-request
+                   :res   dummy-response
+                   :state {:required "state1" :new "state2"}})]
+      (is (= "__default__" scenarioName)))
+
+    (let [{:keys [scenarioName]}
+          (->stub {:req dummy-request :res dummy-response})]
+      (is (nil? scenarioName))))
+
+  (testing "required state defaults to Started if not specified "
+    (let [{:keys [requiredScenarioState]}
+          (->stub {:req   dummy-request :res dummy-response
+                   :state {:new "somestate"}})]
+      (is (= "Started" requiredScenarioState))))
+
+  (testing "new state is optional"
+    (->stub {:req   dummy-request :res dummy-response
+             :state {:required "somestate"}})))

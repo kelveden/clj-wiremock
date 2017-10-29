@@ -6,12 +6,13 @@
   (:import com.github.tomakehurst.wiremock.core.WireMockConfiguration))
 
 (defprotocol Wiremocked
-  (start! [_])
-  (stop! [_])
-  (clear! [_])
-  (url [_ path])
-  (admin-url [_ path])
-  (register-stub! [_ stub-content]))
+  (start! [_] "Start the wiremock server.")
+  (stop! [_] "Stop the wiremock server.")
+  (clear! [_] "Clear down all stubs registered with the wiremock server.")
+  (url [_ path] "Creates an absolute URL pointing to the wiremock server with the given path.")
+  (admin-url [_ path] "Creates an absolute URL pointing to the admin endpoint of the wiremock server with the given path.")
+  (scenarios [_] "Provides details on the scenarios and states currently registered with wiremock.")
+  (register-stub! [_ stub-content] "Registers the given stub with wiremock."))
 
 (defrecord WireMockServer [^com.github.tomakehurst.wiremock.WireMockServer wmk-java]
   Wiremocked
@@ -32,6 +33,9 @@
 
   (admin-url [_ path]
     (url _ (str "/__admin" path)))
+
+  (scenarios [_]
+    (get-in (http/get (admin-url _ "/scenarios") {:as :json}) [:body :scenarios]))
 
   (register-stub! [_ stub-content]
     (http/post (admin-url _ "/mappings/new")

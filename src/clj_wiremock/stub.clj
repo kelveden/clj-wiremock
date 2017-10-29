@@ -4,6 +4,8 @@
             [clojure.string :refer [includes?]])
   (:import (java.util.regex Pattern)))
 
+(def ^:private default-scenario "__default__")
+
 (defn- coerce-body
   [{:keys [body] :as req} as]
   (case as
@@ -27,32 +29,49 @@
   [m]
   (into {} (filter (comp not nil? second)) m))
 
-(defn- build-request
+(defn- assoc-request
   "Syntactic sugar for building a wiremock stub request map"
-  [{:keys [method opts] [url-field url-value] :path}]
-  (let [{:keys [body as headers]} opts]
-    (-> opts
-        (dissoc :body :as :headers)
-        (merge {:method  (keyword (clojure.string/upper-case (name method)))
-                :headers headers
-                :body    body})
-        (assoc url-field (str url-value))
-        (lower-case-keys-in [:headers])
-        (coerce-body as)
-        (strip-nils))))
+  [{{:keys [method opts] [url-field url-value] :path} :req
+    :as stub}]
+  (let [{:keys [body as headers]} opts
+        request (-> opts
+                    (dissoc :body :as :headers)
+                    (merge {:method  (keyword (clojure.string/upper-case (name method)))
+                            :headers headers
+                            :body    body})
+                    (assoc url-field (str url-value))
+                    (lower-case-keys-in [:headers])
+                    (coerce-body as)
+                    (strip-nils))]
+    (-> stub
+        (assoc :request request)
+        (dissoc :req))))
 
-(defn- build-response
+(defn- assoc-response
   "Syntactic sugar for building a wiremock stub response map"
-  [{:keys [status opts]}]
-  (let [{:keys [body as headers]} opts]
-    (-> opts
-        (dissoc :body :as :headers)
-        (merge {:status  status
-                :headers headers
-                :body    body})
-        (lower-case-keys-in [:headers])
-        (coerce-body as)
-        (strip-nils))))
+  [{{:keys [status opts]} :res
+    :as stub}]
+  (let [{:keys [body as headers]} opts
+        response (-> opts
+                     (dissoc :body :as :headers)
+                     (merge {:status  status
+                             :headers headers
+                             :body    body})
+                     (lower-case-keys-in [:headers])
+                     (coerce-body as)
+                     (strip-nils))]
+    (-> stub
+        (assoc :response response)
+        (dissoc :res))))
+
+(defn- assoc-scenario
+  [{:keys [state scenario] :as stub}]
+  (-> {:scenarioName          (or scenario (when state default-scenario))
+       :requiredScenarioState (or (:required state) "Started")
+       :newScenarioState      (:new state)}
+      (strip-nils)
+      (merge stub)
+      (dissoc :scenario :state)))
 
 (defn- with-query? [url] (includes? url "?"))
 (defn- not-with-query? [url] (not (with-query? url)))
@@ -60,24 +79,33 @@
 
 (s/def ::headers map?)
 (s/def ::body some?)
-(s/def ::method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD})
-(s/def ::request-options (s/keys :opt-un [::headers ::body]))
-(s/def ::url (s/or :urlPattern pattern?
-                   :urlPath (s/and string? not-with-query?)
-                   :url (s/and string? with-query?)))
-(s/def ::req (s/cat :method ::method :path ::url :opts (s/? ::request-options)))
 
-(s/def ::response-options (s/keys :opt-un [::headers ::body]))
-(s/def ::res (s/cat :status integer? :opts (s/? ::response-options)))
+; Request
+(s/def :req/method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD})
+(s/def :req/opts (s/keys :opt-un [::headers ::body]))
+(s/def :req/url (s/or :urlPattern pattern?
+                      :urlPath (s/and string? not-with-query?)
+                      :url (s/and string? with-query?)))
+(s/def ::req (s/cat :method :req/method :path :req/url :opts (s/? :req/opts)))
+
+; Response
+(s/def :res/opts (s/keys :opt-un [::headers ::body]))
+(s/def ::res (s/cat :status integer? :opts (s/? :res/opts)))
+
+; Scenario/state
+(s/def ::scenario string?)
+(s/def :state/required string?)
+(s/def :state/new string?)
+(s/def ::state (s/keys :opt-un [:state/required :state/new]))
 
 (s/def ::stub
-  (s/keys :req-un [::req ::res]))
+  (s/keys :req-un [::req ::res]
+          :opt-un [::state ::scenario]))
 
 (defn ->stub
   [stub]
   {:pre [(s/assert ::stub stub)]}
-  (let [{:keys [req res] :as conformed} (s/conform ::stub stub)]
-    (-> conformed
-        (dissoc :req :res)
-        (assoc :request (build-request req)
-               :response (build-response res)))))
+  (-> (s/conform ::stub stub)
+      (assoc-request)
+      (assoc-response)
+      (assoc-scenario)))

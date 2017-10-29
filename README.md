@@ -110,3 +110,33 @@ dirty with the underlying Java WireMockServer.
 See the [full code](test/clj_wiremock/test/examples/with_java_interop.clj).
 
 ## Syntactic sugar
+
+### Scenarios
+As usual, you can just add the usual scenario/state fields from the Wiremock JSON API to
+your stub. Alternatively, you can use the syntactic sugar provided by two fields in your stub:
+
+* `scenario`: The name of the scenario (i.e. simply a synonym for the `scenarioName` field in
+the JSON API).
+* `state`: A map that has two optional subfields `required` and `new` corresponding to the
+`requiredScenarioState` and `newScenarioState` fields on the JSON API respectively. If no
+`required` field is specified, "Started" is implied.
+
+Note that if a `state` field is included in a stub but no `scenario`, then a default scenario
+name (`__default__`) will be used instead. This is to allow creation of stubs in simpler situations
+where only one scenario is required. 
+
+e.g.
+
+```clj
+; Specify a required state (in the default scenario) and new state for when the stub is matched
+(wmk/with-stubs [{:req [:GET "/ping"] :res [200] :state {:required "Started" :new "pinged"}}] ...)
+
+; Specify a required state but no state change when the stub is matched
+(wmk/with-stubs [{:req [:GET "/ping"] :res [200] :state {:required "Started"}}] ...)
+
+; Specify a new state for when the stub is matched and imply "Started" as the required state 
+(wmk/with-stubs [{:req [:GET "/ping"] :res [200] :state {:new "pinged"}}] ...)
+
+; Specify a scenario name, required state and new state
+(wmk/with-stubs [{:req [:GET "/ping"] :res [200] :scenario "myscenario" :state {:required "Started" :new "pinged"}}] ...)
+```

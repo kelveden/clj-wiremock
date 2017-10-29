@@ -54,21 +54,7 @@
                         (is (= 200 (:status response1)))
                         (is (= 201 (:status response2))))))))
 
-(deftest can-clear-stubs
-  (let [port (get-free-port)]
-    (wmk/with-wiremock
-      {:port port}
-
-      (server/register-stub! *wiremock* (ping-stub port))
-
-      (is (= 200 (:status (http/get (ping-url port)))))
-      (is (= 200 (:status (http/get (ping-url port)))))
-
-      (server/clear! *wiremock*)
-
-      (is (= 404 (:status (http/get (ping-url port) {:throw-exceptions? false})))))))
-
-(deftest wiremock-reset-after-using-multiple-stubs
+(deftest wiremock-is-reset-after-with-stubs-block
   (let [port (get-free-port)]
     (wmk/with-wiremock
       {:port port}
