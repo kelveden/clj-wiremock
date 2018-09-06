@@ -140,3 +140,6 @@ e.g.
 ; Specify a scenario name, required state and new state
 (wmk/with-stubs [{:req [:GET "/ping"] :res [200] :scenario "myscenario" :state {:required "Started" :new "pinged"}}] ...)
 ```
+
+## License
+[Eclipse Public License 1.0](http://opensource.org/licenses/eclipse-1.0.php), the same as Clojure.
