@@ -3,7 +3,8 @@
             [clj-wiremock.core :refer [*wiremock*] :as wmk]
             [clj-wiremock.server :as server]
             [clj-wiremock.test.helpers :refer [ping-stub ping-url get-free-port]]
-            [clojure.test :refer :all])
+            [clojure.test :refer :all]
+            [ring.util.http-predicates :as http?])
   (:import (java.net ConnectException)))
 
 (deftest can-wrap-body-in-wiremock-startup-teardown
@@ -13,31 +14,31 @@
 
       (server/register-stub! *wiremock* (ping-stub port))
 
-      (let [{:keys [status body]} (http/get (ping-url port))]
+      (let [{:keys [body] :as response} (http/get (ping-url port))]
         (is (= "pong" body))
-        (is (= 200 status))))
+        (is (http?/ok? response))))
 
     (is (thrown? ConnectException (http/get (ping-url port))))))
 
 (deftest can-wrap-function-in-wiremock-fixture
-  (let [port (get-free-port)
-        stub (ping-stub port)
+  (let [port      (get-free-port)
+        stub      (ping-stub port)
         test-body (fn []
                     (server/register-stub! *wiremock* stub)
                     (http/get (ping-url port)))
-        response (wmk/wiremock-fixture {:port port} test-body)]
+        response  (wmk/wiremock-fixture {:port port} test-body)]
     (is (= "pong" (:body response)))
-    (is (= 200 (:status response)))))
+    (is (http?/ok? response))))
 
 (deftest can-wrap-function-in-threadable-wiremock-fixture
-  (let [port (get-free-port)
-        stub (ping-stub port)
+  (let [port      (get-free-port)
+        stub      (ping-stub port)
         test-body (fn []
                     (server/register-stub! *wiremock* stub)
                     (http/get (ping-url port)))
-        response ((wmk/wiremock-fixture-fn {:port port} test-body))]
+        response  ((wmk/wiremock-fixture-fn {:port port} test-body))]
     (is (= "pong" (:body response)))
-    (is (= 200 (:status response)))))
+    (is (http?/ok? response))))
 
 (deftest can-add-multiple-stubs
   (let [port (get-free-port)]
@@ -51,8 +52,8 @@
                             response2 (http/get (str "http://localhost:" port "/ping2"))]
                         (is (= "pong1" (:body response1)))
                         (is (= "pong2" (:body response2)))
-                        (is (= 200 (:status response1)))
-                        (is (= 201 (:status response2))))))))
+                        (is (http?/ok? response1))
+                        (is (http?/created? response2)))))))
 
 (deftest wiremock-is-reset-after-with-stubs-block
   (let [port (get-free-port)]
@@ -61,6 +62,38 @@
 
       (wmk/with-stubs
         [(ping-stub port)]
-        (is (= 200 (:status (http/get (ping-url port))))))
+        (is (http?/ok? (http/get (ping-url port)))))
+      (is (http?/not-found? (http/get (ping-url port) {:throw-exceptions? false}))))))
 
-      (is (= 404 (:status (http/get (ping-url port) {:throw-exceptions? false})))))))
+(deftest can-add-stub-with-explicit-wiremock-server
+  (let [port (get-free-port)
+        s    (server/init-wiremock {:port port})]
+    (server/start! s)
+    (try
+      (wmk/with-stubs
+        [{:req    [:GET "/ping"]
+          :res    [200 {:body "pong"}]
+          :server s}]
+
+        (let [response (http/get (ping-url port))]
+          (is (= "pong" (:body response)))
+          (is (http?/ok? response))))
+
+      (finally
+        (server/stop! s)))))
+
+(deftest wiremock-is-reset-after-with-explicit-server-stubs-block
+  (let [port (get-free-port)
+        s    (server/init-wiremock {:port port})]
+    (server/start! s)
+    (try
+      (wmk/with-stubs
+        [{:req    [:GET "/ping"]
+          :res    [200 {:body "pong"}]
+          :server s}]
+
+        (is (http?/ok? (http/get (ping-url port)))))
+      (is (http?/not-found? (http/get (ping-url port) {:throw-exceptions? false})))
+
+      (finally
+        (server/stop! s)))))

@@ -1,4 +1,4 @@
-(defproject kelveden/clj-wiremock "1.3.0"
+(defproject kelveden/clj-wiremock "1.4.0"
   :description "Clojure bindings for WireMock"
   :url "https://github.com/kelveden/clj-wiremock"
   :license {:name "Eclipse Public License - v 1.0"
@@ -11,7 +11,8 @@
                  [org.clojure/tools.logging "0.4.0"]
                  [org.slf4j/slf4j-api "1.7.25"]]
   :jvm-opts ["-Dclojure.spec.check-asserts=true"]
-  :profiles {:dev {:dependencies [[org.slf4j/slf4j-simple "1.7.25"]
+  :profiles {:dev {:dependencies [[metosin/ring-http-response "0.9.1"]
+                                  [org.slf4j/slf4j-simple "1.7.25"]
                                   [slingshot "0.12.2"]]
                    :source-paths ["dev"]
                    :repl-options {:init-ns user}}})

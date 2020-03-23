@@ -29,7 +29,11 @@
   [stubs & body]
   `(try
      (doseq [stub# ~stubs]
-       (server/register-stub! *wiremock* stub#))
+       (let [server# (or (:server stub#) *wiremock*)]
+         (server/register-stub! server# (dissoc stub# :server))))
      ~@body
      (finally
-       (server/clear! *wiremock*))))
+       (doseq [server# (->> ~stubs (map :server) (remove nil?))]
+         (server/clear! server#))
+       (when (bound? #'*wiremock*)
+         (server/clear! *wiremock*)))))
