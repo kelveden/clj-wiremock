@@ -22,7 +22,7 @@ is provided as your "once" test fixture.
   (wmk/with-stubs
       [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
   
-      (let [{:keys [status]} (http/get (server/url *wiremock* "/ping"))]
+      (let [{:keys [status]} (http/get (server/url (wmk/only-server) "/ping"))]
         (is (= 200 status)))))
 ```
 
@@ -53,7 +53,7 @@ at the end of the block.
     (wmk/with-stubs
       [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
 
-      (let [{:keys [status]} (http/get (server/url *wiremock* "/ping"))]
+      (let [{:keys [status]} (http/get (server/url (wmk/only-server) "/ping"))]
         (is (= 200 status)))))
 ```
 
