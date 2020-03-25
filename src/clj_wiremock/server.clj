@@ -12,7 +12,8 @@
   (url [_ path] "Creates an absolute URL pointing to the wiremock server with the given path.")
   (admin-url [_ path] "Creates an absolute URL pointing to the admin endpoint of the wiremock server with the given path.")
   (scenarios [_] "Provides details on the scenarios and states currently registered with wiremock.")
-  (register-stub! [_ stub-content] "Registers the given stub with wiremock."))
+  (register-stub! [_ stub-content] "Registers the given stub with wiremock.")
+  (requests [_] "Returns the contents of the request journal."))
 
 (defrecord WireMockServer [^com.github.tomakehurst.wiremock.WireMockServer wmk-java]
   Wiremocked
@@ -39,7 +40,13 @@
 
   (register-stub! [_ stub-content]
     (http/post (admin-url _ "/mappings/new")
-               {:body (json/generate-string (->stub stub-content))})))
+               {:body (json/generate-string (->stub stub-content))}))
+
+  (requests [_]
+    (-> (admin-url _ "/requests")
+        (http/get)
+        :body
+        (json/parse-string true))))
 
 (defn init-wiremock
   "Intialises a new WireMock server ready for starting on the specified port."

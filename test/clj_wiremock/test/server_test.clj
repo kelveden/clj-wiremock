@@ -6,7 +6,7 @@
   (:import (java.net ConnectException)))
 
 (deftest can-start-and-stop-wiremock
-  (let [port (get-free-port)
+  (let [port     (get-free-port)
         wiremock (server/init-wiremock {:port port})
         ping-url (str "http://localhost:" port "/__admin/mappings")]
 
@@ -19,7 +19,7 @@
     (is (thrown? ConnectException (http/get ping-url)))))
 
 (deftest can-build-admin-url-from-path
-  (let [port (get-free-port)
+  (let [port     (get-free-port)
         wiremock (server/init-wiremock {:port port})]
 
     (try
@@ -29,7 +29,7 @@
       (finally (server/stop! wiremock)))))
 
 (deftest can-clear-stubs
-  (let [port (get-free-port)
+  (let [port     (get-free-port)
         wiremock (server/init-wiremock {:port port})]
     (try
       ; Given
@@ -47,7 +47,7 @@
       (finally (server/stop! wiremock)))))
 
 (deftest can-retrieve-scenarios
-  (let [port (get-free-port)
+  (let [port     (get-free-port)
         wiremock (server/init-wiremock {:port port})]
     (try
       ; Given
@@ -63,5 +63,22 @@
       ; Then
       (is (clojure.set/subset? (set {:state "newstate" :name "myscenario"})
                                (set (first (server/scenarios wiremock)))))
+
+      (finally (server/stop! wiremock)))))
+
+(deftest can-retrieve-request-journal
+  (let [port     (get-free-port)
+        wiremock (server/init-wiremock {:port port})]
+    (try
+      ; Given
+      (server/start! wiremock)
+
+      ; When
+      (http/get (ping-url port) {:throw-exceptions false})
+
+      ; Then
+      (let [[request :as requests] (:requests (server/requests wiremock))]
+        (is (= 1 (count requests)))
+        (is (= "/ping" (get-in request [:request :url]))))
 
       (finally (server/stop! wiremock)))))
