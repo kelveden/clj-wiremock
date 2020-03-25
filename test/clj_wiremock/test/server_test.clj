@@ -77,7 +77,7 @@
       (http/get (ping-url port) {:throw-exceptions false})
 
       ; Then
-      (let [[request :as requests] (:requests (server/requests wiremock))]
+      (let [[request :as requests] (server/requests wiremock)]
         (is (= 1 (count requests)))
         (is (= "/ping" (get-in request [:request :url]))))
 

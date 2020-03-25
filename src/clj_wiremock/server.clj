@@ -46,7 +46,8 @@
     (-> (admin-url _ "/requests")
         (http/get)
         :body
-        (json/parse-string true))))
+        (json/parse-string true)
+        :requests)))
 
 (defn init-wiremock
   "Intialises a new WireMock server ready for starting on the specified port."
