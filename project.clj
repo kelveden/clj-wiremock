@@ -1,4 +1,4 @@
-(defproject kelveden/clj-wiremock "1.5.1"
+(defproject kelveden/clj-wiremock "1.5.2"
   :description "Clojure bindings for WireMock"
   :url "https://github.com/kelveden/clj-wiremock"
   :license {:name "Eclipse Public License - v 1.0"

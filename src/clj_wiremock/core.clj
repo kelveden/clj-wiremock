@@ -71,3 +71,8 @@
        (finally
          (doseq [stub# stubs#]
            (server/clear! (:server stub#)))))))
+
+(defn request-journal
+  "Pulls back the request journal for the specified wiremock server. Defaults to the root server."
+  ([s] (server/requests s))
+  ([] (server/requests (root-server))))
