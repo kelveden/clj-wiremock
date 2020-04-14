@@ -81,7 +81,7 @@
 (s/def ::body some?)
 
 ; Request
-(s/def :req/method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD})
+(s/def :req/method #{:GET :POST :DELETE :PUT :TRACE :DEBUG :OPTIONS :HEAD :PATCH})
 (s/def :req/opts (s/keys :opt-un [::headers ::body]))
 (s/def :req/url (s/or :urlPattern pattern?
                       :urlPath (s/and string? not-with-query?)
