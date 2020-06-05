@@ -138,3 +138,13 @@
                      test-body)]
     (is (= "pong" (:body response)))
     (is (http?/ok? response))))
+
+(deftest can-get-wiremock-server-by-port
+  (let [port (get-free-port)]
+    (wmk/with-wiremock
+      {:port port}
+
+      (server/register-stub! (wmk/server port) (ping-stub port))
+
+      (is (http?/ok?
+            (http/get (ping-url port)))))))
