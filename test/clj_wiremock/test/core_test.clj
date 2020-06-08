@@ -45,15 +45,16 @@
     (wmk/with-wiremock
       {:port port}
 
-      (wmk/with-stubs [{:req [:GET "/ping1"] :res [200 {:body "pong1"}]}
-                       {:req [:GET "/ping2"] :res [201 {:body "pong2"}]}]
+      (wmk/with-stubs
+        [{:req [:GET "/ping1"] :res [200 {:body "pong1"}]}
+         {:req [:GET "/ping2"] :res [201 {:body "pong2"}]}]
 
-                      (let [response1 (http/get (str "http://localhost:" port "/ping1"))
-                            response2 (http/get (str "http://localhost:" port "/ping2"))]
-                        (is (= "pong1" (:body response1)))
-                        (is (= "pong2" (:body response2)))
-                        (is (http?/ok? response1))
-                        (is (http?/created? response2)))))))
+        (let [response1 (http/get (str "http://localhost:" port "/ping1"))
+              response2 (http/get (str "http://localhost:" port "/ping2"))]
+          (is (= "pong1" (:body response1)))
+          (is (= "pong2" (:body response2)))
+          (is (http?/ok? response1))
+          (is (http?/created? response2)))))))
 
 (deftest wiremock-is-reset-after-with-stubs-block
   (let [port (get-free-port)]
@@ -129,13 +130,13 @@
 
 (deftest can-wrap-function-in-wiremocks-fixture
   (let [[port1 port2] [(get-free-port) (get-free-port)]
-        stub1      (ping-stub port1)
-        test-body  (fn []
-                     (server/register-stub! (wmk/root-server) stub1)
-                     (http/get (ping-url port1)))
-        response   (wmk/wiremocks-fixture
-                     [{:port port1} {:port port2}]
-                     test-body)]
+        stub1     (ping-stub port1)
+        test-body (fn []
+                    (server/register-stub! (wmk/root-server) stub1)
+                    (http/get (ping-url port1)))
+        response  (wmk/wiremocks-fixture
+                    [{:port port1} {:port port2}]
+                    test-body)]
     (is (= "pong" (:body response)))
     (is (http?/ok? response))))
 
@@ -148,3 +149,23 @@
 
       (is (http?/ok?
             (http/get (ping-url port)))))))
+
+(deftest can-retrieve-request-journal
+  (let [port (get-free-port)]
+    (wmk/with-wiremock
+      {:port port}
+
+      (wmk/with-stubs
+        [{:req [:GET "/ping1"] :res [200 {:body "pong1"}]}
+         {:req [:PUT "/ping2"] :res [201 {:body "pong2"}]}]
+
+        (http/get (str "http://localhost:" port "/ping1"))
+        (http/put (str "http://localhost:" port "/ping2"))
+
+        (is (= 2 (count (wmk/request-journal))))
+
+        (is (= 1 (count (wmk/get-logged-requests :get "/ping1"))))
+        (is (= 0 (count (wmk/get-logged-requests :put "/ping1"))))
+
+        (is (= 1 (count (wmk/get-logged-requests :put "/ping2"))))
+        (is (= 0 (count (wmk/get-logged-requests :get "/ping2"))))))))

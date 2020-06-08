@@ -79,5 +79,17 @@
 
 (defn request-journal
   "Pulls back the request journal for the specified wiremock server. Defaults to the root server."
-  ([s] (srv/requests s))
+  ([s] (->> (srv/requests s)
+            (sort-by #(get-in % [:request :loggedDate]))))
   ([] (srv/requests (root-server))))
+
+(defn get-logged-requests
+  "Get's the logged requests for the specified method and url."
+  [method url & args]
+  (->> (apply request-journal args)
+       (filter (fn [{:keys [request]}]
+                 (and (= (clojure.string/upper-case (name method))
+                         (:method request))
+                      (= url (:url request)))))
+       (map :request)
+       (vec)))
