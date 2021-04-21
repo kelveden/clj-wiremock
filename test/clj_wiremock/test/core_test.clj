@@ -21,12 +21,14 @@
     (is (thrown? ConnectException (http/get (ping-url port))))))
 
 (deftest can-wrap-function-in-wiremock-fixture
-  (let [port      (get-free-port)
-        stub      (ping-stub port)
+  (let [[port1 port2] [(get-free-port) (get-free-port)]
+        stub1     (ping-stub port1)
         test-body (fn []
-                    (server/register-stub! (wmk/root-server) stub)
-                    (http/get (ping-url port)))
-        response  (wmk/wiremock-fixture {:port port} test-body)]
+                    (server/register-stub! (wmk/root-server) stub1)
+                    (http/get (ping-url port1)))
+        response  (wmk/wiremock-fixture
+                    [{:port port1} {:port port2}]
+                    test-body)]
     (is (= "pong" (:body response)))
     (is (http?/ok? response))))
 
@@ -36,7 +38,7 @@
         test-body (fn []
                     (server/register-stub! (wmk/root-server) stub)
                     (http/get (ping-url port)))
-        response  ((wmk/wiremock-fixture-fn {:port port} test-body))]
+        response  ((wmk/wiremock-fixture-fn [{:port port}]) test-body)]
     (is (= "pong" (:body response)))
     (is (http?/ok? response))))
 
@@ -127,18 +129,6 @@
 
         (is (http?/ok? (http/get (ping-url port)))))
       (is (http?/not-found? (http/get (ping-url port) {:throw-exceptions? false}))))))
-
-(deftest can-wrap-function-in-wiremocks-fixture
-  (let [[port1 port2] [(get-free-port) (get-free-port)]
-        stub1     (ping-stub port1)
-        test-body (fn []
-                    (server/register-stub! (wmk/root-server) stub1)
-                    (http/get (ping-url port1)))
-        response  (wmk/wiremocks-fixture
-                    [{:port port1} {:port port2}]
-                    test-body)]
-    (is (= "pong" (:body response)))
-    (is (http?/ok? response))))
 
 (deftest can-get-wiremock-server-by-port
   (let [port (get-free-port)]

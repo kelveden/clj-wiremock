@@ -14,7 +14,7 @@ is provided as your "once" test fixture.
 ```clj
 (defn around-all
   [f]
-  (wmk/wiremock-fixture {:port wiremock-port} f))
+  (wmk/wiremock-fixture [{:port wiremock-port}] f))
 
 (use-fixtures :once around-all)
 
@@ -34,7 +34,7 @@ if you want to thread through multiple fixtures in your "around all" function; e
 (defn around-all
   [f]
   (-> f
-  	  (wmk/wiremock-fixture-fn {:port wiremock-port})
+  	  (wmk/wiremock-fixture-fn [{:port wiremock-port}])
   	  (some-other-fixture)))
 
 (use-fixtures :once around-all)

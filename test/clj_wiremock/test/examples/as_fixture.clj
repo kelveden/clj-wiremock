@@ -12,7 +12,7 @@
   [f]
   ; or you can use wiremock-fixture-fn to wrap the fixture in another function - useful
   ; if you want to thread through multiple fixtures
-  (wmk/wiremock-fixture {:port wiremock-port} f))
+  (wmk/wiremock-fixture [{:port wiremock-port}] f))
 
 (use-fixtures :once around-all)
 

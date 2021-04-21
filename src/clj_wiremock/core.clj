@@ -15,17 +15,6 @@
   (get @wiremocks port))
 
 (defn wiremock-fixture
-  [{:keys [port] :as config} f]
-  (let [s (srv/init-wiremock config)]
-    (swap! wiremocks assoc port s)
-    (try
-      (srv/start! s)
-      (f)
-      (finally
-        (swap! wiremocks dissoc port)
-        (srv/stop! s)))))
-
-(defn wiremocks-fixture
   [configs f]
   (let [servers (->> configs
                      (reduce (fn [acc {:keys [port] :as c}]
@@ -43,9 +32,9 @@
           (srv/stop! s))))))
 
 (defn wiremock-fixture-fn
-  [config f]
-  (fn []
-    (wiremock-fixture config f)))
+  [configs]
+  (fn [f]
+    (wiremock-fixture configs f)))
 
 (defmacro with-wiremock
   [{:keys [port] :as config} & body]
