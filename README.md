@@ -49,7 +49,7 @@ code blocks in which wiremock has been fired up. Wiremock will be stopped
 at the end of the block.
 
 ```clj
-(wmk/with-wiremock {:port wiremock-port}
+(wmk/with-wiremock [{:port wiremock-port}]
     (wmk/with-stubs
       [{:req [:GET "/ping"] :res [200 {:body "pong"}]}]
 

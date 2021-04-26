@@ -14,38 +14,31 @@
   [port]
   (get @wiremocks port))
 
+(defmacro with-wiremock
+  [configs & body]
+  `(let [servers# (->> ~configs
+                       (reduce (fn [acc# config#]
+                                 (assoc acc# (:port config#) (srv/init-wiremock config#)))
+                               {}))]
+     (swap! wiremocks merge servers#)
+
+     (try
+       (doseq [[_# server#] servers#]
+         (srv/start! server#))
+       ~@body
+       (finally
+         (swap! wiremocks #(apply dissoc (cons % (keys servers#))))
+         (doseq [[_# server#] servers#]
+           (srv/stop! server#))))))
+
 (defn wiremock-fixture
   [configs f]
-  (let [servers (->> configs
-                     (reduce (fn [acc {:keys [port] :as c}]
-                               (assoc acc port (srv/init-wiremock c)))
-                             {}))]
-    (swap! wiremocks merge servers)
-
-    (try
-      (doseq [[_ s] servers]
-        (srv/start! s))
-      (f)
-      (finally
-        (swap! wiremocks #(apply dissoc (cons % (keys servers))))
-        (doseq [[_ s] servers]
-          (srv/stop! s))))))
+  (with-wiremock configs (f)))
 
 (defn wiremock-fixture-fn
   [configs]
   (fn [f]
     (wiremock-fixture configs f)))
-
-(defmacro with-wiremock
-  [{:keys [port] :as config} & body]
-  `(let [s# (srv/init-wiremock ~config)]
-     (swap! wiremocks assoc ~port s#)
-     (try
-       (srv/start! s#)
-       ~@body
-       (finally
-         (swap! wiremocks dissoc ~port)
-         (srv/stop! s#)))))
 
 (defmacro with-stubs
   [stubs & body]

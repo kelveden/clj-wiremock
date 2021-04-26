@@ -10,7 +10,7 @@
 (deftest can-wrap-body-in-wiremock-startup-teardown
   (let [port (get-free-port)]
     (wmk/with-wiremock
-      {:port port}
+      [{:port port}]
 
       (server/register-stub! (wmk/root-server) (ping-stub port))
 
@@ -45,7 +45,7 @@
 (deftest can-add-multiple-stubs
   (let [port (get-free-port)]
     (wmk/with-wiremock
-      {:port port}
+      [{:port port}]
 
       (wmk/with-stubs
         [{:req [:GET "/ping1"] :res [200 {:body "pong1"}]}
@@ -61,7 +61,7 @@
 (deftest wiremock-is-reset-after-with-stubs-block
   (let [port (get-free-port)]
     (wmk/with-wiremock
-      {:port port}
+      [{:port port}]
 
       (wmk/with-stubs
         [(ping-stub port)]
@@ -106,7 +106,7 @@
 (deftest can-add-stub-with-explicit-wiremock-port
   (let [port (get-free-port)]
     (wmk/with-wiremock
-      {:port port}
+      [{:port port}]
 
       (wmk/with-stubs
         [{:req  [:GET "/ping"]
@@ -120,7 +120,7 @@
 (deftest wiremock-is-reset-after-with-explicit-port-stubs-block
   (let [port (get-free-port)]
     (wmk/with-wiremock
-      {:port port}
+      [{:port port}]
 
       (wmk/with-stubs
         [{:req  [:GET "/ping"]
@@ -133,7 +133,7 @@
 (deftest can-get-wiremock-server-by-port
   (let [port (get-free-port)]
     (wmk/with-wiremock
-      {:port port}
+      [{:port port}]
 
       (server/register-stub! (wmk/server port) (ping-stub port))
 
@@ -143,7 +143,7 @@
 (deftest can-retrieve-request-journal
   (let [port (get-free-port)]
     (wmk/with-wiremock
-      {:port port}
+      [{:port port}]
 
       (wmk/with-stubs
         [{:req [:GET "/ping1"] :res [200 {:body "pong1"}]}
