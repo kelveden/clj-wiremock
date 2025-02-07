@@ -3,15 +3,16 @@
   :url "https://github.com/kelveden/clj-wiremock"
   :license {:name "Eclipse Public License - v 1.0"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[cheshire "5.10.2"]
-                 [clj-http "3.12.3"]
-                 [com.github.tomakehurst/wiremock "2.27.2"]
-                 [org.clojure/clojure "1.11.0"]
-                 [org.clojure/tools.logging "1.2.4"]
-                 [org.slf4j/slf4j-api "1.7.36"]]
+  :dependencies [[cheshire "5.13.0"]
+                 [clj-http "3.13.0"]
+                 [com.fasterxml.jackson.core/jackson-core "2.18.2"]
+                 [org.wiremock/wiremock "3.11.0"]
+                 [org.clojure/clojure "1.12.0"]
+                 [org.clojure/tools.logging "1.3.0"]
+                 [org.slf4j/slf4j-api "2.0.13"]]
   :jvm-opts ["-Dclojure.spec.check-asserts=true"]
-  :profiles {:dev {:dependencies [[metosin/ring-http-response "0.9.3"]
-                                  [org.slf4j/slf4j-simple "1.7.36"]
+  :profiles {:dev {:dependencies [[metosin/ring-http-response "0.9.5"]
+                                  [org.slf4j/slf4j-simple "2.0.16"]
                                   [slingshot "0.12.2"]]
                    :source-paths ["dev"]
                    :repl-options {:init-ns user}}})

@@ -39,7 +39,7 @@
     (get-in (http/get (admin-url _ "/scenarios") {:as :json}) [:body :scenarios]))
 
   (register-stub! [_ stub-content]
-    (http/post (admin-url _ "/mappings/new")
+    (http/post (admin-url _ "/mappings")
                {:body (json/generate-string (->stub stub-content))}))
 
   (requests [_]

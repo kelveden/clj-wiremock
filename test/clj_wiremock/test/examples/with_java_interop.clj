@@ -13,7 +13,7 @@
     (try
       (.start wmk-java)
 
-      (http/post (str "http://localhost:" (.port wmk-java) "/__admin/mappings/new")
+      (http/post (str "http://localhost:" (.port wmk-java) "/__admin/mappings")
                  {:body (json/generate-string {:request  {:method :GET :url "/ping"}
                                                :response {:status 200 :body "pong"}})})
 
