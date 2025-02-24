@@ -1,8 +1,8 @@
-(ns clj-wiremock.test.core-test
+(ns clj-wiremock.core-test
   (:require [clj-http.client :as http]
             [clj-wiremock.core :as wmk]
             [clj-wiremock.server :as server]
-            [clj-wiremock.test.helpers :refer [ping-stub ping-url get-free-port]]
+            [clj-wiremock.helpers :refer [ping-stub ping-url get-free-port]]
             [clojure.test :refer :all]
             [ring.util.http-predicates :as http?])
   (:import (java.net ConnectException)))

@@ -1,4 +1,4 @@
-(ns clj-wiremock.test.examples.as-block
+(ns clj-wiremock.examples.as-block
   (:require [clj-http.client :as http]
             [clj-wiremock.core :refer [wiremocks] :as wmk]
             [clj-wiremock.server :as server]

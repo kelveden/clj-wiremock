@@ -1,4 +1,4 @@
-(ns clj-wiremock.test.helpers
+(ns clj-wiremock.helpers
   (:require [clojure.test :refer :all])
   (:import (java.net ServerSocket)))
 

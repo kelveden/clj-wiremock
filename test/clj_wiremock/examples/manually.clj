@@ -1,4 +1,4 @@
-(ns clj-wiremock.test.examples.manually
+(ns clj-wiremock.examples.manually
   (:require [clj-http.client :as http]
             [clj-wiremock.server :as server]
             [clojure.test :refer :all])

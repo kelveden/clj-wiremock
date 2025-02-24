@@ -1,4 +1,4 @@
-(ns clj-wiremock.test.stub-test
+(ns clj-wiremock.stub-test
   (:require [clj-wiremock.stub :refer :all]
             [slingshot.test :refer :all]
             [clojure.test :refer :all]

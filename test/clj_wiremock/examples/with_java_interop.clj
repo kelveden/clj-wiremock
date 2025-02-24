@@ -1,4 +1,4 @@
-(ns clj-wiremock.test.examples.with-java-interop
+(ns clj-wiremock.examples.with-java-interop
   (:require [clj-http.client :as http]
             [clj-wiremock.server :as server]
             [clojure.test :refer :all]
@@ -13,7 +13,7 @@
     (try
       (.start wmk-java)
 
-      (http/post (str "http://localhost:" (.port wmk-java) "/__admin/mappings/new")
+      (http/post (str "http://localhost:" (.port wmk-java) "/__admin/mappings")
                  {:body (json/generate-string {:request  {:method :GET :url "/ping"}
                                                :response {:status 200 :body "pong"}})})
 

@@ -40,7 +40,7 @@ if you want to thread through multiple fixtures in your "around all" function; e
 (use-fixtures :once around-all)
 ```
 
-See the [full code](test/clj_wiremock/test/examples/as_fixture.clj). 
+See the [full code](test/clj_wiremock/examples/as_fixture.clj). 
 
 ### As a block
 Sometimes you only need wiremock in one or two tests rather than the entire
@@ -57,7 +57,7 @@ at the end of the block.
         (is (= 200 status)))))
 ```
 
-See the [full code](test/clj_wiremock/test/examples/as_block.clj). 
+See the [full code](test/clj_wiremock/examples/as_block.clj). 
 
 
 ### Manually
@@ -84,7 +84,7 @@ block anyway.)
       (finally (server/stop! wiremock)))))
 ```
 
-See the [full code](test/clj_wiremock/test/examples/manually.clj).
+See the [full code](test/clj_wiremock/examples/manually.clj).
 
 ### Via Java interop
 Sometimes the helper functions provided aren't enough and you need to get your hands
@@ -107,7 +107,7 @@ dirty with the underlying Java WireMockServer.
       (finally (.stop wmk-java)))))
 ```
 
-See the [full code](test/clj_wiremock/test/examples/with_java_interop.clj).
+See the [full code](test/clj_wiremock/examples/with_java_interop.clj).
 
 ## Syntactic sugar
 

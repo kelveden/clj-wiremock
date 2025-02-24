@@ -1,0 +1,4 @@
+#kaocha/v1
+    {:reporter   #profile {:default kaocha.report/documentation}
+     :plugins    [:kaocha.plugin/profiling]
+     :fail-fast? true}
